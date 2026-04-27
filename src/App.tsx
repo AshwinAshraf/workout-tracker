@@ -497,6 +497,7 @@ const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
             note: val.note || null,
           }))
         })
+        console.log('Rows to save:', JSON.stringify(rows))
         const { error } = await supabase.from('workout_logs').upsert(rows, {
           onConflict: 'user_id,week_idx,day_idx,exercise_idx,set_idx'
         })
