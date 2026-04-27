@@ -483,12 +483,18 @@ const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     saveTimeoutRef.current = setTimeout(async () => {
       try {
         const rows = Object.entries(newLogs).flatMap(([key, sets]: any) => {
-          const [, w, , d, , e] = key.match(/w(\d+)_d(\d+)_e(\d+)/) || []
+          const match = key.match(/w(\d+)_d(\d+)_e(\d+)/)
+          if (!match) return []
+          const [, w, d, e] = match
           return Object.entries(sets).map(([si, val]: any) => ({
             user_id: 'ashwin',
-            week_idx: parseInt(w), day_idx: parseInt(d),
-            exercise_idx: parseInt(e), set_idx: parseInt(si),
-            weight: val.weight || null, reps: val.reps || null, note: val.note || null,
+            week_idx: parseInt(w),
+            day_idx: parseInt(d),
+            exercise_idx: parseInt(e),
+            set_idx: parseInt(si),
+            weight: val.weight || null,
+            reps: val.reps || null,
+            note: val.note || null,
           }))
         })
         const { error } = await supabase.from('workout_logs').upsert(rows, {
