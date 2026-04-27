@@ -453,7 +453,7 @@ export default function WorkoutTracker() {
           logsData.forEach((row: any) => {
             const key = `w${row.week_idx}_d${row.day_idx}_e${row.exercise_idx}`
             if (!rebuilt[key]) rebuilt[key] = {}
-            rebuilt[key][row.set_idx] = { weight: row.weight, reps: row.reps, note: row.note }
+            rebuilt[key][String(row.set_idx)] = { weight: row.weight, reps: row.reps, note: row.note }
           })
           setLogs(rebuilt)
         }
