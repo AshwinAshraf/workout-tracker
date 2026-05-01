@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import UserSelect from './UserSelect'
+import RufiTracker from './RufiTracker'
 
 // ─── SUPABASE CONFIG ───────────────────────────────────────────────
 const supabase = createClient(
@@ -435,6 +437,21 @@ export default function WorkoutTracker() {
   const [expandedEx, setExpandedEx] = useState({});
   const [storageReady, setStorageReady] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
+  const [showBackup, setShowBackup] = useState(false);
+  const [currentUser, setCurrentUser] = useState<'ashwin' | 'rufi' | null>(() => {
+    const saved = localStorage.getItem('workout_user')
+    return (saved as 'ashwin' | 'rufi') || null
+  })
+  
+  const handleSelectUser = (user: 'ashwin' | 'rufi') => {
+    localStorage.setItem('workout_user', user)
+    setCurrentUser(user)
+  }
+  
+  const handleSwitchUser = () => {
+    localStorage.removeItem('workout_user')
+    setCurrentUser(null)
+  }
 
   const toggleEx = (key) => {
     setExpandedEx(prev => ({ ...prev, [key]: !prev[key] }));
@@ -564,6 +581,9 @@ const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const week = PLAN.weeks[activeWeek];
   const accentColor = weekColors[activeWeek];
 
+  if (currentUser === null) return <UserSelect onSelect={handleSelectUser} />
+  if (currentUser === 'rufi') return <RufiTracker onSwitchUser={handleSwitchUser} />
+
   // Loading screen while storage initialises
   if (!storageReady) {
     return (
@@ -609,6 +629,14 @@ const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
             <div style={{ fontFamily: "'Bebas Neue'", fontSize: 28, letterSpacing: 1, lineHeight: 1 }}>
               4-WEEK PPL PROGRAM
             </div>
+            <button onClick={handleSwitchUser} style={{
+              background: 'none', border: '1px solid #2A2A3E',
+              borderRadius: 8, padding: '4px 12px',
+              color: '#666', fontSize: 11, cursor: 'pointer',
+              marginTop: 8, fontFamily: "'DM Sans', sans-serif",
+            }}>
+              👤 Switch User
+            </button>
           </div>
           <div style={{
             background: `${accentColor}20`,
@@ -1010,11 +1038,11 @@ const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
                         Key Lift Logs (Week {wi + 1})
                       </div>
                       {[
-                        { label: "Bench Press", di: 0, ei: 0 },
-                        { label: "Back Squat", di: 2, ei: 0 },
-                        { label: "OHP", di: 3, ei: 0 },
-                        { label: "Pull-Ups", di: 4, ei: 0 },
-                        { label: "RDL", di: 5, ei: 0 },
+                       { label: "Bench Press", di: 0, ei: 1 },
+                       { label: "Box Squat", di: 2, ei: 2 },
+                       { label: "OHP", di: 3, ei: 1 },
+                       { label: "Pull-Ups", di: 4, ei: 1 },
+                       { label: "RDL", di: 5, ei: 2 },
                       ].map(({ label, di, ei }) => {
                         const sets = PLAN.weeks[wi].days[di]?.exercises[ei]?.sets || 0;
                         const entries = Array.from({ length: sets }, (_, si) => ({
@@ -1081,7 +1109,6 @@ const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
               {/* Backup display */}
               {(() => {
-                const [showBackup, setShowBackup] = useState(false);
                 const backup = JSON.stringify({ exportedAt: new Date().toISOString(), version: "1.0", logs, completedSets });
                 return (
                   <>
